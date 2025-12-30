@@ -1,0 +1,9 @@
+# Kunci Rahasia (JANGAN DIHAPUS BARIS INI)
+.env
+
+# Folder Sampah / Berat
+node_modules
+client/node_modules
+.DS_Store
+dist
+build
