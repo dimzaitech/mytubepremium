@@ -2,10 +2,14 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaBars, FaYoutube, FaSearch, FaMicrophone, FaUserCircle, FaBell, FaVideo, FaHome, FaCompass, FaPlayCircle, FaHistory, FaBroadcastTower, FaBookmark, FaRegBookmark, FaExclamationCircle, FaTimes, FaArrowLeft, FaThumbsUp, FaThumbsDown, FaShare, FaExpand, FaCompress } from 'react-icons/fa';
 
-// === LOGIKA PINTAR: DETEKSI IP OTOMATIS ===
-const hostname = window.location.hostname;
-const BACKEND_URL = `http://${hostname}:3000`; 
-// ==========================================
+// === LOGIKA URL UNTUK VERCEL & LOCAL ===
+// 1. Cek apakah kita sedang di Vercel/Production? (Bukan localhost & bukan IP lokal)
+const isProduction = window.location.hostname !== 'localhost' && !window.location.hostname.startsWith('192') && !window.location.hostname.startsWith('172');
+
+// 2. Jika di Production (Vercel), URL kosong (otomatis ke domain sendiri).
+// 3. Jika di Local, tembak ke port 3000.
+const BACKEND_URL = isProduction ? "" : "http://localhost:3000";
+// =======================================
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -73,46 +77,32 @@ function App() {
       setVideos(response.data);
     } catch (error) {
       console.error("Gagal mengambil video:", error);
-      setErrorMsg("Gagal memuat video. Pastikan Laptop & HP satu Wi-Fi, dan Server Backend sudah jalan.");
+      setErrorMsg("Gagal memuat video. Pastikan Server Backend sudah jalan.");
     } finally {
       setLoading(false);
     }
   };
 
-  // === UPDATE VITAL: LOGIKA REKOMENDASI YANG LEBIH KETAT ===
+  // === FETCH VIDEO REKOMENDASI (LOGIKA CERDAS) ===
   const fetchRelatedVideos = async (video) => {
     try {
       let query = "";
-      // Ambil 3 kata pertama dari judul video biar pencarian spesifik tapi gak kepanjangan
-      // Contoh: "Dewa 19 - Kangen (Official Video)" -> Jadi "Dewa 19 -"
       const titleKeywords = video.snippet.title.split(" ").slice(0, 3).join(" "); 
 
-      // SKENARIO 1: USER ADA DI NAVIGASI KHUSUS (Musik, Karaoke, Kuliner, dll)
       if (selectedCategory !== "Beranda" && selectedCategory !== "Explorasi" && selectedCategory !== "Saved" && selectedCategory !== "History") {
-         
          if (selectedCategory === "Film") {
-            // Kalau Film: "Film Action [Judul Video]"
             query = `Film ${selectedFilmGenre} ${titleKeywords}`;
          } else {
-            // Kalau Kategori Lain: "[Judul Video] [Nama Kategori]"
-            // Contoh: "Sate Ayam Madura" + "Kuliner" -> Cari: "Sate Ayam Madura Kuliner"
-            // Contoh: "Dewa 19" + "Karaoke" -> Cari: "Dewa 19 Karaoke"
             query = `${titleKeywords} ${selectedCategory}`; 
          }
       } 
-      // SKENARIO 2: USER ADA DI BERANDA / SEARCH HASIL
       else {
-         // Kalau di Beranda, kita gak tau pasti kategorinya apa.
-         // Jadi kita cari yang mirip banget sama JUDUL + CHANNEL biar nyambung.
          query = `${titleKeywords} ${video.snippet.channelTitle}`;
       }
       
       const url = `${BACKEND_URL}/api/videos?q=${encodeURIComponent(query)}`;
       const response = await axios.get(url);
-      
-      // Filter video yang sama biar gak dobel
       const filtered = response.data.filter(v => v.id !== video.id);
-      
       setRelatedVideos(filtered);
     } catch (error) {
       console.error("Gagal mengambil related videos:", error);
@@ -152,8 +142,6 @@ function App() {
     localStorage.setItem('mytube_history', JSON.stringify(newHistory));
 
     window.scrollTo(0, 0);
-
-    // FETCH REKOMENDASI (Logic Baru)
     fetchRelatedVideos(video);
   };
 
