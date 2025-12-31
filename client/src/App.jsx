@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaBars, FaYoutube, FaSearch, FaMicrophone, FaUserCircle, FaBell, FaVideo, FaHome, FaCompass, FaPlayCircle, FaHistory, FaBroadcastTower, FaBookmark, FaRegBookmark, FaExclamationCircle, FaTimes, FaArrowLeft, FaThumbsUp, FaThumbsDown, FaShare, FaExpand, FaCompress } from 'react-icons/fa';
 
@@ -115,10 +115,10 @@ function App() {
     fetchVideos(false);
   }, [selectedCategory, selectedFilmGenre]);
 
-  // === LOGIKA BACKGROUND PLAY & MEDIA CONTROL ===
+  // === LOGIKA BACKGROUND PLAY & MEDIA CONTROL (VERSI FIX) ===
   useEffect(() => {
     if (selectedVideo && 'mediaSession' in navigator) {
-      // 1. Set Metadata (Judul, Artis, Gambar di Notifikasi)
+      // 1. Set Metadata (Judul, Artis, Gambar)
       navigator.mediaSession.metadata = new MediaMetadata({
         title: selectedVideo.snippet.title,
         artist: selectedVideo.snippet.channelTitle,
@@ -129,29 +129,32 @@ function App() {
         ]
       });
 
-      // 2. Aksi Tombol Notifikasi (Next / Prev)
+      // 2. FORCE STATUS PLAYING (Wajib buat Android biar tombol nongol)
+      navigator.mediaSession.playbackState = "playing";
+
+      // 3. AKSI TOMBOL NEXT (Maju ke Rekomendasi)
       navigator.mediaSession.setActionHandler('nexttrack', () => {
         if (relatedVideos.length > 0) {
-           // Play video pertama dari rekomendasi
            handleVideoClick(relatedVideos[0]);
         }
       });
 
+      // 4. AKSI TOMBOL PREV (Mundur ke History)
       navigator.mediaSession.setActionHandler('previoustrack', () => {
-         // Logic Prev: Balik ke video terakhir di history (kalau ada)
          if (historyVideos.length > 1) {
-            handleVideoClick(historyVideos[1]); // Index 0 adalah video skrg, Index 1 adalah sblmnya
+            handleVideoClick(historyVideos[1]); 
          }
       });
 
-      // Tombol Play/Pause (Ini agak tricky karena iframe youtube susah dikontrol lgsg dari API browser)
-      // Kita biarkan default browser handling atau kosongkan biar tombolnya ada tapi user klik di layar.
+      // 5. TOMBOL SEEK (Pancingan biar UI Notifikasi Membesar)
+      navigator.mediaSession.setActionHandler('seekbackward', () => {});
+      navigator.mediaSession.setActionHandler('seekforward', () => {});
+
+      // 6. Play & Pause (Dummy handler biar tombolnya aktif)
       navigator.mediaSession.setActionHandler('play', () => {});
       navigator.mediaSession.setActionHandler('pause', () => {});
-
     }
   }, [selectedVideo, relatedVideos, historyVideos]);
-
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
