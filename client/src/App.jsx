@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { FaBars, FaYoutube, FaSearch, FaMicrophone, FaUserCircle, FaBell, FaVideo, FaHome, FaCompass, FaPlayCircle, FaHistory, FaBroadcastTower, FaBookmark, FaRegBookmark, FaExclamationCircle, FaTimes, FaArrowLeft, FaThumbsUp, FaThumbsDown, FaShare, FaExpand, FaCompress } from 'react-icons/fa';
 
@@ -114,6 +114,44 @@ function App() {
     setIsCinemaMode(false);
     fetchVideos(false);
   }, [selectedCategory, selectedFilmGenre]);
+
+  // === LOGIKA BACKGROUND PLAY & MEDIA CONTROL ===
+  useEffect(() => {
+    if (selectedVideo && 'mediaSession' in navigator) {
+      // 1. Set Metadata (Judul, Artis, Gambar di Notifikasi)
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: selectedVideo.snippet.title,
+        artist: selectedVideo.snippet.channelTitle,
+        album: 'MyTube Premium',
+        artwork: [
+          { src: selectedVideo.snippet.thumbnails.medium.url, sizes: '320x180', type: 'image/jpeg' },
+          { src: selectedVideo.snippet.thumbnails.high?.url || selectedVideo.snippet.thumbnails.medium.url, sizes: '480x360', type: 'image/jpeg' }
+        ]
+      });
+
+      // 2. Aksi Tombol Notifikasi (Next / Prev)
+      navigator.mediaSession.setActionHandler('nexttrack', () => {
+        if (relatedVideos.length > 0) {
+           // Play video pertama dari rekomendasi
+           handleVideoClick(relatedVideos[0]);
+        }
+      });
+
+      navigator.mediaSession.setActionHandler('previoustrack', () => {
+         // Logic Prev: Balik ke video terakhir di history (kalau ada)
+         if (historyVideos.length > 1) {
+            handleVideoClick(historyVideos[1]); // Index 0 adalah video skrg, Index 1 adalah sblmnya
+         }
+      });
+
+      // Tombol Play/Pause (Ini agak tricky karena iframe youtube susah dikontrol lgsg dari API browser)
+      // Kita biarkan default browser handling atau kosongkan biar tombolnya ada tapi user klik di layar.
+      navigator.mediaSession.setActionHandler('play', () => {});
+      navigator.mediaSession.setActionHandler('pause', () => {});
+
+    }
+  }, [selectedVideo, relatedVideos, historyVideos]);
+
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -257,7 +295,7 @@ function App() {
           </aside>
         )}
 
-        {/* === SIDEBAR MOBILE (YANG TADI KURANG LENGKAP) === */}
+        {/* === SIDEBAR MOBILE === */}
         {isMobileMenuOpen && (
           <div className="fixed inset-0 z-[60] flex md:hidden">
             <div className="absolute inset-0 bg-black bg-opacity-70 transition-opacity" onClick={() => setIsMobileMenuOpen(false)}></div>
@@ -267,7 +305,6 @@ function App() {
                 <div className="flex items-center gap-1"><FaYoutube className="text-yt-red text-3xl" /><span className="text-xl font-bold tracking-tighter">Premium</span></div>
               </div>
               
-              {/* == MENU LENGKAP MOBILE SEKARANG == */}
               <div onClick={() => { setSelectedCategory("Beranda"); setIsMobileMenuOpen(false); }}><SidebarItem icon={<FaHome />} text="Beranda" isOpen={true} active={selectedCategory === "Beranda"} /></div>
               <div onClick={() => { setSelectedCategory("Explorasi"); setIsMobileMenuOpen(false); }}><SidebarItem icon={<FaCompass />} text="Explorasi" isOpen={true} active={selectedCategory === "Explorasi"} /></div>
               <div onClick={() => { setSelectedCategory("Shorts"); setIsMobileMenuOpen(false); }}><SidebarItem icon={<FaPlayCircle />} text="Shorts" isOpen={true} active={selectedCategory === "Shorts"} /></div>
