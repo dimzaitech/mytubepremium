@@ -3,11 +3,7 @@ import axios from 'axios';
 import { FaBars, FaYoutube, FaSearch, FaMicrophone, FaUserCircle, FaBell, FaVideo, FaHome, FaCompass, FaPlayCircle, FaHistory, FaBroadcastTower, FaBookmark, FaRegBookmark, FaExclamationCircle, FaTimes, FaArrowLeft, FaThumbsUp, FaThumbsDown, FaShare, FaExpand, FaCompress } from 'react-icons/fa';
 
 // === LOGIKA URL UNTUK VERCEL & LOCAL ===
-// 1. Cek apakah kita sedang di Vercel/Production? (Bukan localhost & bukan IP lokal)
 const isProduction = window.location.hostname !== 'localhost' && !window.location.hostname.startsWith('192') && !window.location.hostname.startsWith('172');
-
-// 2. Jika di Production (Vercel), URL kosong (otomatis ke domain sendiri).
-// 3. Jika di Local, tembak ke port 3000.
 const BACKEND_URL = isProduction ? "" : "http://localhost:3000";
 // =======================================
 
@@ -83,7 +79,7 @@ function App() {
     }
   };
 
-  // === FETCH VIDEO REKOMENDASI (LOGIKA CERDAS) ===
+  // === FETCH VIDEO REKOMENDASI ===
   const fetchRelatedVideos = async (video) => {
     try {
       let query = "";
@@ -236,7 +232,7 @@ function App() {
 
       <div className="flex flex-1 overflow-hidden relative">
         
-        {/* SIDEBAR */}
+        {/* === SIDEBAR DESKTOP === */}
         {!selectedVideo && (
           <aside className={`hidden md:flex flex-col h-[calc(100vh-56px)] overflow-y-auto sticky top-14 px-2 scrollbar-thin hover:overflow-y-scroll transition-all duration-200 ease-in-out ${isSidebarOpen ? 'w-60' : 'w-[72px]'}`}>
             <div onClick={() => setSelectedCategory("Beranda")}><SidebarItem icon={<FaHome />} text="Beranda" isOpen={isSidebarOpen} active={selectedCategory === "Beranda"} /></div>
@@ -245,9 +241,23 @@ function App() {
             <div onClick={() => setSelectedCategory("History")}><SidebarItem icon={<FaHistory />} text="History" isOpen={isSidebarOpen} active={selectedCategory === "History"} /></div>
             <hr className="border-yt-secondary my-2 mx-2" />
             <div onClick={() => setSelectedCategory("Saved")}><SidebarItem icon={<FaBookmark />} text="Saved" isOpen={isSidebarOpen} active={selectedCategory === "Saved"} /></div>
+
+            {/* === CREDIT DESKTOP === */}
+            {isSidebarOpen && (
+              <div className="mt-auto pt-10 pb-6 text-center select-none opacity-60 hover:opacity-100 transition-opacity">
+                <p className="text-[10px] text-gray-500 mb-1">Created with ❤️ by.</p>
+                <div className="bg-[#222] py-1 px-2 rounded-lg inline-block border border-[#333]">
+                  <p className="text-[11px] font-bold text-white tracking-wide">
+                    DimzM01 <span className="text-yt-red">Web Development</span>
+                  </p>
+                </div>
+              </div>
+            )}
+            
           </aside>
         )}
 
+        {/* === SIDEBAR MOBILE (YANG TADI KURANG LENGKAP) === */}
         {isMobileMenuOpen && (
           <div className="fixed inset-0 z-[60] flex md:hidden">
             <div className="absolute inset-0 bg-black bg-opacity-70 transition-opacity" onClick={() => setIsMobileMenuOpen(false)}></div>
@@ -256,7 +266,26 @@ function App() {
                 <button onClick={() => setIsMobileMenuOpen(false)}><FaBars className="text-xl text-white" /></button>
                 <div className="flex items-center gap-1"><FaYoutube className="text-yt-red text-3xl" /><span className="text-xl font-bold tracking-tighter">Premium</span></div>
               </div>
+              
+              {/* == MENU LENGKAP MOBILE SEKARANG == */}
               <div onClick={() => { setSelectedCategory("Beranda"); setIsMobileMenuOpen(false); }}><SidebarItem icon={<FaHome />} text="Beranda" isOpen={true} active={selectedCategory === "Beranda"} /></div>
+              <div onClick={() => { setSelectedCategory("Explorasi"); setIsMobileMenuOpen(false); }}><SidebarItem icon={<FaCompass />} text="Explorasi" isOpen={true} active={selectedCategory === "Explorasi"} /></div>
+              <div onClick={() => { setSelectedCategory("Shorts"); setIsMobileMenuOpen(false); }}><SidebarItem icon={<FaPlayCircle />} text="Shorts" isOpen={true} active={selectedCategory === "Shorts"} /></div>
+              <div onClick={() => { setSelectedCategory("History"); setIsMobileMenuOpen(false); }}><SidebarItem icon={<FaHistory />} text="History" isOpen={true} active={selectedCategory === "History"} /></div>
+              
+              <hr className="border-[#272727] my-2" />
+              
+              <div onClick={() => { setSelectedCategory("Saved"); setIsMobileMenuOpen(false); }}><SidebarItem icon={<FaBookmark />} text="Saved" isOpen={true} active={selectedCategory === "Saved"} /></div>
+              
+              {/* CREDIT MOBILE */}
+              <div className="mt-auto pt-10 pb-4 text-center select-none opacity-60">
+                <p className="text-[10px] text-gray-500 mb-1">Created with ❤️ by.</p>
+                <div className="bg-[#222] py-1 px-2 rounded-lg inline-block border border-[#333]">
+                  <p className="text-[11px] font-bold text-white tracking-wide">
+                    DimzM01 <span className="text-yt-red">Web Development</span>
+                  </p>
+                </div>
+              </div>
             </aside>
           </div>
         )}
